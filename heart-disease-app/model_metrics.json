@@ -1,0 +1,18 @@
+{
+  "model": "Random Forest",
+  "unique_patients": 302,
+  "train_n": 241,
+  "test_n": 61,
+  "accuracy": 0.803,
+  "precision": 0.786,
+  "recall": 0.786,
+  "f1": 0.786,
+  "auc": 0.881,
+  "top_features": {
+    "ca": 0.13,
+    "oldpeak": 0.124,
+    "cp": 0.12,
+    "thalach": 0.111,
+    "thal": 0.093
+  }
+}

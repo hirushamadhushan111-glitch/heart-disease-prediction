@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Heart Disease Prediction</title>
+    <style>
+        body { font-family: Arial; background: #f0f4f8; padding: 30px; }
+        .card { max-width: 500px; margin: auto; background: white;
+                padding: 30px; border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2 { color: #d32f2f; text-align: center; }
+        label { display: block; margin-top: 12px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; margin-top: 4px;
+                        border: 1px solid #ccc; border-radius: 6px; }
+        button { width: 100%; margin-top: 20px; padding: 12px;
+                 background: #d32f2f; color: white; border: none;
+                 border-radius: 6px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #b71c1c; }
+        .result { margin-top: 20px; padding: 15px; text-align: center;
+                  font-size: 18px; font-weight: bold;
+                  background: #e3f2fd; border-radius: 8px; }
+        .error  { margin-top: 20px; padding: 15px; text-align: center;
+                  font-size: 16px; font-weight: bold; color: #b71c1c;
+                  background: #ffebee; border-radius: 8px; }
+        .bar    { height: 10px; margin-top: 10px; border-radius: 5px;
+                  background: #cfd8dc; overflow: hidden; }
+        .bar > div { height: 100%; background: #d32f2f; }
+        .bar-label { font-size: 13px; font-weight: normal; color: #546e7a;
+                     margin-top: 6px; }
+        .disclaimer { margin-top: 20px; padding: 12px; font-size: 13px;
+                      line-height: 1.5; color: #5d4037; background: #fff8e1;
+                      border-left: 4px solid #ffb300; border-radius: 6px; }
+        .metrics { margin-top: 16px; font-size: 12px; color: #78909c;
+                   text-align: center; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>❤️ Heart Disease Prediction</h2>
+
+        <div class="disclaimer">
+            <strong>⚕️ Not a medical diagnosis.</strong>
+            This is a student machine-learning project trained on 302 patient
+            records from the UCI Cleveland dataset. It is roughly 80% accurate
+            and will be wrong about 1 in 5 times. Never use it to make a health
+            decision — always consult a qualified doctor.
+        </div>
+
+        <form action="/predict" method="POST">
+            <label>Age</label>
+            <input type="number" name="age" value="{{ form.age }}" required>
+
+            <label>Sex</label>
+            <select name="sex">
+                <option value="1" {% if form.sex == '1' %}selected{% endif %}>Male</option>
+                <option value="0" {% if form.sex == '0' %}selected{% endif %}>Female</option>
+            </select>
+
+            <label>Chest Pain Type (0-3)</label>
+            <select name="cp">
+                <option value="0" {% if form.cp == '0' %}selected{% endif %}>0 - Typical Angina</option>
+                <option value="1" {% if form.cp == '1' %}selected{% endif %}>1 - Atypical Angina</option>
+                <option value="2" {% if form.cp == '2' %}selected{% endif %}>2 - Non-anginal Pain</option>
+                <option value="3" {% if form.cp == '3' %}selected{% endif %}>3 - Asymptomatic</option>
+            </select>
+
+            <label>Resting Blood Pressure</label>
+            <input type="number" name="trestbps" value="{{ form.trestbps }}" required>
+
+            <label>Cholesterol</label>
+            <input type="number" name="chol" value="{{ form.chol }}" required>
+
+            <label>Fasting Blood Sugar &gt; 120</label>
+            <select name="fbs">
+                <option value="0" {% if form.fbs == '0' %}selected{% endif %}>No</option>
+                <option value="1" {% if form.fbs == '1' %}selected{% endif %}>Yes</option>
+            </select>
+
+            <label>Resting ECG (0-2)</label>
+            <select name="restecg">
+                <option value="0" {% if form.restecg == '0' %}selected{% endif %}>0 - Normal</option>
+                <option value="1" {% if form.restecg == '1' %}selected{% endif %}>1 - ST-T Abnormality</option>
+                <option value="2" {% if form.restecg == '2' %}selected{% endif %}>2 - LV Hypertrophy</option>
+            </select>
+
+            <label>Max Heart Rate</label>
+            <input type="number" name="thalach" value="{{ form.thalach }}" required>
+
+            <label>Exercise Induced Angina</label>
+            <select name="exang">
+                <option value="0" {% if form.exang == '0' %}selected{% endif %}>No</option>
+                <option value="1" {% if form.exang == '1' %}selected{% endif %}>Yes</option>
+            </select>
+
+            <label>ST Depression (oldpeak)</label>
+            <input type="number" step="0.1" name="oldpeak" value="{{ form.oldpeak }}" required>
+
+            <label>Slope (0-2)</label>
+            <select name="slope">
+                <option value="0" {% if form.slope == '0' %}selected{% endif %}>0 - Upsloping</option>
+                <option value="1" {% if form.slope == '1' %}selected{% endif %}>1 - Flat</option>
+                <option value="2" {% if form.slope == '2' %}selected{% endif %}>2 - Downsloping</option>
+            </select>
+
+            <label>Major Vessels Coloured (0-3)</label>
+            <select name="ca">
+                <option value="0" {% if form.ca == '0' %}selected{% endif %}>0</option>
+                <option value="1" {% if form.ca == '1' %}selected{% endif %}>1</option>
+                <option value="2" {% if form.ca == '2' %}selected{% endif %}>2</option>
+                <option value="3" {% if form.ca == '3' %}selected{% endif %}>3</option>
+            </select>
+
+            <label>Thalassemia (1-3)</label>
+            <select name="thal">
+                <option value="1" {% if form.thal == '1' %}selected{% endif %}>1 - Fixed Defect</option>
+                <option value="2" {% if form.thal == '2' %}selected{% endif %}>2 - Normal</option>
+                <option value="3" {% if form.thal == '3' %}selected{% endif %}>3 - Reversible Defect</option>
+            </select>
+
+            <button type="submit">Predict</button>
+        </form>
+
+        {% if result %}
+        <div class="result">
+            {{ result }}
+            <div class="bar"><div style="width: {{ risk }}%"></div></div>
+            <div class="bar-label">Estimated risk: {{ risk }}%</div>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        {% if metrics %}
+        <div class="metrics">
+            Model: {{ metrics.model }} &middot;
+            trained on {{ metrics.unique_patients }} unique patients<br>
+            Test set ({{ metrics.test_n }} patients) &mdash;
+            accuracy {{ (metrics.accuracy * 100) | round(1) }}% &middot;
+            recall {{ (metrics.recall * 100) | round(1) }}% &middot;
+            AUC {{ metrics.auc }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
