@@ -5,7 +5,11 @@ Mirrors the notebook pipeline, but runs top-to-bottom in one go so the
 duplicate-removal and label-fix steps can never be skipped by accident
 (that is what produced the fake 100% accuracy in the old saved model).
 
-Run:  python train_model.py
+Run:  python train_model.py            full run: compares 5 models, 5-fold CV
+                                       and a grid search (~1 minute)
+      python train_model.py --quick    trains the winning Random Forest only
+                                       (~2 seconds), for rebuilding the .pkl
+                                       on a CPU-limited host
 """
 
 import json
@@ -119,7 +123,7 @@ def tune_random_forest(X_train, y_train):
     return grid.best_estimator_
 
 
-def main():
+def main(quick=False):
     df = load_data()
     sanity_check(df)
 
@@ -132,21 +136,32 @@ def main():
     X_train_s = pd.DataFrame(scaler.fit_transform(X_train), columns=FEATURES)
     X_test_s = pd.DataFrame(scaler.transform(X_test), columns=FEATURES)
 
-    table, trained = compare_models(X_train_s, X_test_s, y_train, y_test, X, y)
-
-    best_name = table.iloc[0]['Model']
-    best_model = trained[best_name]
-    best_f1 = table.iloc[0]['F1']
-
-    # Only promote the tuned forest if it actually beats the winner.
-    tuned = tune_random_forest(X_train_s, y_train)
-    tuned_f1 = f1_score(y_test, tuned.predict(X_test_s))
-    print(f'Tuned RF test F1       : {tuned_f1:.3f}  (current best {best_f1:.3f})')
-    if tuned_f1 > best_f1:
-        best_model, best_name, best_f1 = tuned, 'Random Forest (tuned)', tuned_f1
-        print('-> Tuned Random Forest promoted to best model.')
+    if quick:
+        # Skip the comparison and the grid search and go straight to the
+        # winner they already picked. Same model, seconds instead of a
+        # minute - for rebuilding the .pkl on a CPU-limited host.
+        best_name = 'Random Forest'
+        best_model = RandomForestClassifier(n_estimators=100,
+                                            random_state=RANDOM_STATE)
+        best_model.fit(X_train_s, y_train)
+        best_f1 = f1_score(y_test, best_model.predict(X_test_s))
+        print(f'\nQuick mode: trained {best_name} only (F1 {best_f1:.3f}).')
     else:
-        print(f'-> Keeping {best_name}.')
+        table, trained = compare_models(X_train_s, X_test_s, y_train, y_test, X, y)
+
+        best_name = table.iloc[0]['Model']
+        best_model = trained[best_name]
+        best_f1 = table.iloc[0]['F1']
+
+        # Only promote the tuned forest if it actually beats the winner.
+        tuned = tune_random_forest(X_train_s, y_train)
+        tuned_f1 = f1_score(y_test, tuned.predict(X_test_s))
+        print(f'Tuned RF test F1       : {tuned_f1:.3f}  (current best {best_f1:.3f})')
+        if tuned_f1 > best_f1:
+            best_model, best_name, best_f1 = tuned, 'Random Forest (tuned)', tuned_f1
+            print('-> Tuned Random Forest promoted to best model.')
+        else:
+            print(f'-> Keeping {best_name}.')
 
     pred = best_model.predict(X_test_s)
     print(f'\n=== FINAL MODEL: {best_name} ===')
@@ -181,4 +196,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    import sys
+    main(quick='--quick' in sys.argv)
