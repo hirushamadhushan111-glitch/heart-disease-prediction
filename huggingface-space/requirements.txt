@@ -1,6 +1,0 @@
-# gradio is provided by the Space SDK - do not pin it here.
-# scikit-learn must match the version that created heart_model.pkl.
-scikit-learn==1.9.0
-numpy==2.5.1
-pandas==3.0.3
-joblib==1.5.3
