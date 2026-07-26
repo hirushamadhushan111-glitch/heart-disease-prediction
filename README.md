@@ -24,32 +24,10 @@ measurements, with a Flask web app for making predictions.
 **Most important features:** `ca` (blocked vessels), `oldpeak` (ST depression),
 `cp` (chest pain type), `thalach` (max heart rate), `thal` (thalassemia).
 
-### ⚠️ About the dataset — why not 100%?
-
-`heart.csv` is the Kaggle version of the UCI Cleveland dataset. It looks like
-it has **1025 patients**, but **723 of those rows are exact duplicates** — there
-are only **302 unique patients**.
-
-Leaving the duplicates in puts the *same patient* in both the training set and
-the test set. The model then just memorises the answer instead of learning, and
-reports a **fake 100% accuracy**. This is called **data leakage**.
-
-This project removes the duplicates first, so 80.3% is the *honest* score.
-
-The notebook also **asserts** that only 302 patients remain before training, so
-the cleaning step can never be skipped by accident.
-
-### Label correction
-
-The Kaggle labels are inverted relative to the original UCI data
-(`target=1` means *no* disease there). The notebook flips them and proves the
-fix against medical expectations:
-
-| Feature | Disease rate | Expected |
-|---|---|---|
-| `exang` = 0 → 1 (exercise angina) | 0.305 → 0.768 | should rise ✅ |
-| `ca` = 0 → 3 (blocked vessels) | 0.257 → 0.850 | should rise ✅ |
-| `sex` female → male | 0.250 → 0.553 | male higher ✅ |
+Five algorithms were compared — Logistic Regression, Decision Tree, Random
+Forest, K-Nearest Neighbors and Naive Bayes — and evaluated on a held-out test
+set plus 5-fold cross-validation. Random Forest won on F1 score and was tuned
+with `GridSearchCV`.
 
 ---
 
@@ -57,7 +35,7 @@ fix against medical expectations:
 
 ```
 .
-├── heart.csv                          # Dataset (1025 rows, 302 unique)
+├── heart.csv                          # UCI Cleveland dataset
 ├── heart_diesease_prdiction.ipynb     # Full analysis notebook (Colab-ready)
 ├── train_model.py                     # Reproducible training script
 ├── requirements.txt
@@ -80,12 +58,12 @@ pip install -r requirements.txt
 ## Retrain the model
 
 ```bash
-python train_model.py
+python train_model.py            # full run: 5 models, CV, grid search (~1 min)
+python train_model.py --quick    # winning Random Forest only (~2 seconds)
 ```
 
-This removes duplicates, fixes labels, compares 5 algorithms, runs 5-fold
-cross-validation and GridSearchCV, then writes `heart_model.pkl`,
-`heart_scaler.pkl` and `model_metrics.json` into `heart-disease-app/`.
+Either way this writes `heart_model.pkl`, `heart_scaler.pkl` and
+`model_metrics.json` into `heart-disease-app/`.
 
 ## Run the web app
 
