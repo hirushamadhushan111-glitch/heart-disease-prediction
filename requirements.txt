@@ -1,6 +1,11 @@
-Flask
-numpy
-pandas
-scikit-learn
-joblib
-gunicorn
+# scikit-learn is pinned exactly: heart_model.pkl was created with this
+# version and unpickling it under a different one can warn or fail.
+# Re-run train_model.py if you change it.
+scikit-learn==1.9.0
+numpy==2.5.1
+pandas==3.0.3
+joblib==1.5.3
+
+# Web app
+Flask==3.1.3
+gunicorn==23.0.0
